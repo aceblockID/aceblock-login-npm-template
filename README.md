@@ -91,6 +91,13 @@ Befor you start setting up the project you need to install:
   ```sh
   npm install npm@latest -g
   ```
+* For testing api callback you will need software for simulating api requests, the best for this is [Postman](https://www.postman.com/)
+
+* ID token for testing:
+    ```sh
+        eyJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwOlwvXC9zc2kuYWNlYmxvY2suY29tXC9hdXRoXC9zc2lhYXNcL2NhbGxiYWNrIiwic3ViIjoiV2RCRmNueUlzRmlnUGNRQ19lQ0daOUxSUml4S3VaNF9jNWQtMVNGdG1OQSIsImlzcyI6Imh0dHBzOlwvXC9zZWxmLWlzdWVkLm1lXC8iLCJzdWJfandrIjoie1wia3R5XCI6XCJFQ1wiLFwiY3J2XCI6XCJzZWNwMjU2azFcIixcInhcIjpcInlQNWZpSXB3VnBmcmFLcF9ETXpBYzU1Yk9fSU5zSTJfR21FbzlYdTZ5LVFcIixcInlcIjpcIjFGNkRTbnNLTW80RWRNU3dPbnNVa1dzX3RpZnpOYnhRZG1QczFWS3VlV3NcIn0iLCJwaG9uZV9udW1iZXIiOiJTb21ldGhpbmcgc29tZXRoaW5nIiwiZXhwIjoxNjQwOTk1MjAwLCJpYXQiOjE2MTAwMDQ2NzMsIm5vbmNlIjoiMmU3ZGU0YzQtMjRmMS00NjZmLWExNTMtYmMyNjI0NjE0ZWVkIiwiZGlkIjoiZGlkOmFjZToweDNiYjY3MjU2OGU5YTlhODljZGJlNzA0NzNjMjE5ZmEyMThjMGRjZTMxOTEwN2JlZDJjYjAxNGZiZjFiNmZiNjQiLCJlbWFpbCI6IlNvbWV0aGluZyBzb21ldGhpbmcifQ.BLhn-5jhvP0iMvpTtAUlp3lIuyPvn3T3kUBpTipjPdMbBTNOJFK6z1dey8NO1HZE53-1E_pvyk54ehyexEZTUg
+    ```
+
 
 ### Installation
 
@@ -138,7 +145,7 @@ Befor you start setting up the project you need to install:
         module.exports = config[env];
    ```
 
-    Add code to app.js:
+    Add code to server.js:
     ```JS
         const config = require('./config/config');
     ```
@@ -154,7 +161,7 @@ Befor you start setting up the project you need to install:
         npm install aceblock-oidc-client
     ``
 
-    Add code to app.js:
+    Add code to server.js:
     ```JS
         const {qrCodeValues, idTokenVerification} = require('aceblock-oidc-client');
     ```
@@ -164,7 +171,7 @@ Befor you start setting up the project you need to install:
         npm install express-session
     ```
 
-    Add code to app.js:
+    Add code to server.js:
     ```JS
         const session = require('express-session');
         const crypto = require('crypto');
@@ -183,7 +190,7 @@ Befor you start setting up the project you need to install:
         npm install cookie-parser
     ```
 
-    Add code to app.js:
+    Add code to server.js:
     ```JS    
         const cookieParser = require('cookie-parser');
         
@@ -195,7 +202,7 @@ Befor you start setting up the project you need to install:
         npm install ejs
     ```
 
-    Add code to app.js:
+    Add code to server.js:
     ```JS
         const path = require('path');
  
@@ -210,7 +217,7 @@ Befor you start setting up the project you need to install:
         npm install socket.io
     ```
 
-    Add code to app.js:
+    Add code to server.js:
     ```JS
         const socket = require('socket.io');
         
@@ -232,13 +239,16 @@ Befor you start setting up the project you need to install:
 10. Create login:
     a. Create api call with code:
     ```JS
+        // Temporary usage for testing purposes
+        const nonce1 = '2e7de4c4-24f1-466f-a153-bc2624614eed';
+
         app.get('/login', async (req, res) => {
         const did = config.qrjwt.did,
         callbackUri = config.qrjwt.callbackUri,
         essClaims = config.qrjwt.essClaimFields,
         volClaims = config.qrjwt.volunClaimFields;
         const {imgTag, jwt, nonce, uri} = await qrCodeValues.create_qrcode(did, callbackUri, essClaims, volClaims);
-        res.render('login', {qrCodePlaceholder: imgTag, qrCodeContent: jwt, sessionNonce: nonce});
+        res.render('login', {qrCodePlaceholder: imgTag, qrCodeContent: jwt, sessionNonce: nonce1});
         });
     ```
     b. Create login.ejs page in views folder with code:    
@@ -289,7 +299,7 @@ Befor you start setting up the project you need to install:
 
 11. Add token verification api callback code:
 
-    Add code to app.js:
+    Add code to server.js:
     ```JS
         // Token verification
         const verifyIdToken = idTokenVerification.initVerIdToken(config);
@@ -323,18 +333,18 @@ Befor you start setting up the project you need to install:
         }        
     ```
 
-12. Add token verification to the rest of the api calls that need to be protected by adding “verifyIdToken” to call as here:
+12. To protect endpoints add token verification to the rest of the api calls that need to be protected by adding “verifyIdToken” to call as here:
     
-    Add code to app.js:
+    Add code to server.js:
     ```JS
-        app.get('/user', verifyIdToken, (req, res) => {
-        res.render('user');
+        app.get('/stats', verifyIdToken, (req, res) => {
+        res.render('stats');
         });        
     ```
 
 13. Add log off functionality by setting idToken cookie value to some new value or maxAge to -1 which means that cookie gets deleted (or both):
     
-    Add code to app.js:
+    Add code to server.js:
     ```JS
         // Log off functionality
         app.get('/logoff', (req, res) => {
@@ -349,10 +359,20 @@ Befor you start setting up the project you need to install:
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
+Here are four simple steps how to test this example:
+* Start the project with
+    ```sh
+        node server.js
+    ```
+* Open web browser and enter url (enter same port number as is in project):
+    ```sh
+        http://localhost:4070
+    ```
+* click on Login link, if everything is ok, qr code should be displayed
+* now open Postmen application and in dropdown menu select `POST` option and next to it enter `localhost:4070/callback` (with same port number as in web browser)
+* under url, select `Headers` tab and under `KEY` enter `id_token` and under value enter `id token value stored up in this readme under Prerequisites` then hit button send and go back to web browser. If everything is ok, page should be redirected from login qr code to user page.
+* you can also test if you can access other links where you have added protection (as described in 12. step of instalation)
+* also you can test if log off works by clicking on link logoff and after that on protected pages - access should be forbidden
 
 
 <!-- ROADMAP -->
